@@ -4,19 +4,38 @@ import { useMap } from "react-leaflet";
 export default function SearchBar() {
   const map = useMap();
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSearch(e) {
     e.preventDefault();
-    if (!query || !map) return;
+    if (!query.trim() || !map) return;
 
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`
-    );
-    const data = await res.json();
+    setLoading(true);
 
-    if (data.length > 0) {
-      const { lat, lon } = data[0];
-      map.setView([parseFloat(lat), parseFloat(lon)], 17);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
+        {
+          headers: {
+            "User-Agent": "SeuAppNomeAqui - contato@example.com", // Troque para sua aplicação/email
+            "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
+          },
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.length > 0) {
+        const { lat, lon } = data[0];
+        map.setView([parseFloat(lat), parseFloat(lon)], 17);
+      } else {
+        alert("Nenhum resultado encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro na busca:", error);
+      alert("Erro ao buscar endereço.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -35,6 +54,7 @@ export default function SearchBar() {
         display: "flex",
         gap: 6,
       }}
+      aria-label="Busca de endereço"
     >
       <input
         type="text"
@@ -42,18 +62,23 @@ export default function SearchBar() {
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar endereço..."
         style={{ padding: 6, width: 180, borderRadius: 4, border: "1px solid #ccc" }}
+        aria-label="Campo para busca de endereço"
+        disabled={loading}
       />
       <button
         type="submit"
         style={{
           padding: "6px 12px",
           borderRadius: 4,
-          background: "#007bff",
+          background: loading ? "#6c757d" : "#007bff",
           color: "#fff",
           border: "none",
+          cursor: loading ? "not-allowed" : "pointer",
         }}
+        disabled={loading}
+        aria-disabled={loading}
       >
-        Buscar
+        {loading ? "Buscando..." : "Buscar"}
       </button>
     </form>
   );
