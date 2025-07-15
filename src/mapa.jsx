@@ -208,7 +208,7 @@ function DrawShapes({
           positions={line}
           pathOptions={{
             color: selectedLineIndex === i ? "orange" : "green",
-            weight: selectedLineIndex === i ? 6 : 4,
+            weight: selectedLineIndex === i ? 3 : 2,
             fillColor: "green",
             fillOpacity: 0.4,
           }}
